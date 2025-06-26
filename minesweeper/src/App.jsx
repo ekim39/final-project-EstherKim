@@ -17,9 +17,18 @@ function App() {
   // is a 2D array, y rows and x cols, with 1 being alive and 0 being dead
   const [boardState, setBoardState] = useState([]);
   const [numMine, setNumMine] = useState(40);
+  const [flagPlacements, setFlagPlacements] = useState([]); // stores where flags are placed
+  const [uncoveredSqr, setUncoveredSqr] = useState([]); // stores where the covered and uncovered squares are (0 means covered, 1 means uncovered)
+  const [numSqrLeft, setNumSqrLeft] = useState(grid.x * grid.y);
   const [boardReady, setBoardReady] = useState(false);
   const [gameStart, setGameStart] = useState(false);
   // interactivity (sliders)
+
+
+  // checks if two arrays are equal (by value)
+  function arrEqs(a, b) {
+    return (a.length === b.length) && a.every((item, i) => item === b[i]);
+  }
 
   // draws the border of the board
   function drawBorder() {
@@ -29,9 +38,9 @@ function App() {
     let canvas = document.getElementById('board');
     let context = canvas.getContext('2d');
 
-    const aliveColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+    const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
 
-    context.strokeStyle = aliveColor; 
+    context.strokeStyle = coveredColor; 
 
     // creates the grid lines around each square in the board
     for (var x = startX; x <= startX + width; x += cubeWidth) {
@@ -115,6 +124,10 @@ function App() {
 
   // draws the initial board in generating a random board state
   function drawBoard() {
+    // reset game
+    setNumSqrLeft(0);
+    setGameStart(false);
+
     // board state that will be set to boardState
     let currentBoard = [];
 
@@ -125,8 +138,8 @@ function App() {
     context.clearRect(startX, startY, width, height);
 
     drawBorder();
-    const aliveColor = getComputedStyle(document.documentElement).getPropertyValue('color');
-    context.fillStyle = aliveColor;
+    const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+    context.fillStyle = coveredColor;
 
     // sets all spots on board to 0, clearing the board
     currentBoard = clearBoard();
@@ -177,85 +190,7 @@ function App() {
     return completelynewboard;
   }
 
-  // returns how many of the surrounding tiles of the tile at coordinate x, y are alive
-  /* function checkAlive(x, y) {
-    let alive = 0;
-    if (x !== 0) {
-      // not at leftside
-      alive += boardState[y][x - 1];
-      if (y !== 0) {
-        // not at top left corner
-        alive += boardState[y - 1][x - 1];
-      }
-    }
-    if (x !== (grid.x - 1)) {
-      // not at rightside
-      alive += boardState[y][x + 1];
-      if (y !== (grid.y - 1)) {
-        // not at bottom right corner
-        alive += boardState[y + 1][x + 1];
-      }
-    }
-    if (y !== 0) {
-      // not at top
-      alive += boardState[y - 1][x];
-      if (x !== (grid.x - 1)) {
-        // not at top right corner
-        alive += boardState[y - 1][x + 1];
-      }
-    }
-    if (y !== (grid.y - 1)) {
-      // not at bottom
-      alive += boardState[y + 1][x];
-      if (x !== 0) {
-        // not at bottom left corner
-        alive += boardState[y + 1][x - 1];
-      }
-    }
-    return alive;
-  }
-
-  // checks whether the cell is alive or dead using its old state and how many cells around it are alive
-  function newCellState(oldState, alive) {
-    let newState = oldState;
-    if (oldState === 0 && alive === 3) {
-      newState = 1;
-    } else if (oldState === 1 && (alive < 2 || alive > 3)) {
-      newState = 0;
-    }
-    return newState;
-  }
-
-  // runs one step in the simulation of the game of life
-  function runSimulation() {
-    let newBoard = [];
-    const cubeWidth = width/grid.x;
-    const cubeHeight = height/grid.y;
-
-    let canvas = document.getElementById('board');
-    let context = canvas.getContext('2d');
-    const aliveColor = getComputedStyle(document.documentElement).getPropertyValue('color');
-    const deadColor = getComputedStyle(document.documentElement).getPropertyValue('background-color');
-  
-    for (let i = 0; i < grid.y; i++) {
-      newBoard[i] = [];
-      for (let j = 0; j < grid.x; j++) {
-        let alive = checkAlive(j, i);
-        let cellState = newCellState(boardState[j][i], alive);
-        newBoard[i][j] = cellState;
-        if (cellState === 1) {
-          context.fillStyle = aliveColor;
-          context.fillRect(startX + (cubeSize * j), startY + (cubeSize * i), cubeSize, cubeSize);
-        } else {
-          context.fillStyle = deadColor;
-          context.fillRect(startX + (cubeSize * j), startY + (cubeSize * i), cubeSize, cubeSize);
-        }
-      }
-    }
-    setBoardState(newBoard);
-    drawBorder();
-
-  } */
+  // draws the whole board uncovered
   function drawWholeBoard(theBoard) {
     let canvas = document.getElementById('board');
     let context = canvas.getContext('2d');
@@ -308,17 +243,21 @@ function App() {
     }
   }
 
-  function drawOneCube(x, y, theBoard, checkRest, alreadyChecked) {
+  function drawOneCube(x, y, theBoard, checkRest, alreadyChecked, trackSqrLeft, trackUncoveredSqr) {
     let canvas = document.getElementById('board');
     let context = canvas.getContext('2d');
 
     const squareBackground = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color');
-    const squareInner = getComputedStyle(document.documentElement).getPropertyValue('background-color');
+    //const squareInner = getComputedStyle(document.documentElement).getPropertyValue('background-color');
     //context.strokeStyle = squareInner;
     context.fillStyle = squareBackground;
 
     // if theBoard[y][x] === 0, then all that is needed is to fill out background
-    context.fillRect(startX + (cubeSize * x), startY + (cubeSize * y), cubeSize, cubeSize);   
+    context.fillRect(startX + (cubeSize * x), startY + (cubeSize * y), cubeSize, cubeSize);
+
+    // indicate this square had been uncovered
+    trackSqrLeft--;
+    trackUncoveredSqr.push([x, y]);
     
     if (theBoard[y][x] === -1) {
       // there is a mine on the board
@@ -355,19 +294,20 @@ function App() {
       const fy = (startY + (cubeSize * y)) + (cubeSize / 2);
       context.fillText(theBoard[y][x].toString(), fx, fy);
     } else if (theBoard[y][x] === 0) {
-      alreadyChecked.push([x, y]);
       if (x !== 0) {
         // not at leftside
         // checking if the coordinates we want to add are already in checkRest or alreadyChecked array
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y])) &&
-        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y]))) {
+        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y])) && 
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y]))) {
           checkRest.push([x - 1, y]);
         }
         
         if (y !== 0) {
           // not at top left corner
           if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y - 1])) &&
-          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y - 1]))) {
+          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y - 1])) && 
+          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y - 1]))) {
             checkRest.push([x - 1, y - 1]);
           }
         }
@@ -375,13 +315,15 @@ function App() {
       if (x !== (grid.x - 1)) {
         // not at rightside
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y])) && 
-        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y]))) {
+        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y])) && 
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y]))) {
           checkRest.push([x + 1, y]);
         }
         if (y !== (grid.y - 1)) {
           // not at bottom right corner
           if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y + 1])) &&
-          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y + 1]))) {
+          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y + 1])) &&
+          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y + 1]))) {
             checkRest.push([x + 1, y + 1]);
           }
         }
@@ -389,14 +331,16 @@ function App() {
       if (y !== 0) {
         // not at top
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x, y - 1])) && 
-        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y - 1]))) {
+        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y - 1])) && 
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y - 1]))) {
           checkRest.push([x, y - 1]);
         }
         
         if (x !== (grid.x - 1)) {
           // not at top right corner
           if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y - 1])) && 
-          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y - 1]))) {
+          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y - 1])) && 
+          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y - 1]))) {
             checkRest.push([x + 1, y - 1]);
           }
         }
@@ -404,13 +348,15 @@ function App() {
       if (y !== (grid.y - 1)) {
         // not at bottom
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x, y + 1])) && 
-        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y + 1]))) {
+        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y + 1])) && 
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y + 1]))) {
           checkRest.push([x, y + 1]);
         }
         if (x !== 0) {
           // not at bottom left corner
           if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y + 1])) && 
-          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y + 1]))) {
+          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y + 1])) && 
+          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y + 1]))) {
             checkRest.push([x - 1, y + 1]);
           }
         }
@@ -418,61 +364,106 @@ function App() {
     }
     if (checkRest.length !== 0) {
       let removedElement = checkRest.shift();
-      drawOneCube(removedElement[0], removedElement[1], theBoard, checkRest, alreadyChecked);
+/*       console.log("recursing...");
+      console.log(removedElement);
+      console.log(checkRest)
+      console.log(trackSqrLeft); */
+      alreadyChecked.push([x, y]);
+      return drawOneCube(removedElement[0], removedElement[1], theBoard, checkRest, alreadyChecked, trackSqrLeft, trackUncoveredSqr);
+    } else {
+      /* console.log("done");
+      console.log(trackSqrLeft); */
+      setUncoveredSqr(trackUncoveredSqr);
+      return trackSqrLeft;
     }
   }
 
   function headerDrawOneCube(x, y, theBoard) {
-    drawOneCube(x, y, theBoard, [], []);
+    if (gameStart) {
+      return drawOneCube(x, y, theBoard, [], [], numSqrLeft, uncoveredSqr);
+    } else {
+      return drawOneCube(x, y, theBoard, [], [], grid.x * grid.y, []);
+    }
   }
 
-  // !!! TODO - need to add flag function; need to add a win function, wins when all squares besides mines are opened (maybe have a tracker to keep track of squares still left unopened); when lose, uncover all squares.
+  // !!! TODO - need to add flag function; need to add a win function, wins when all squares besides mines are opened (maybe have a tracker to keep track of squares still left unopened);
   function cubeClicked(event) {
     if (gameStart) {
       let canvas = document.getElementById('board');
       let container = canvas.getBoundingClientRect();
       const x = Math.floor((event.clientX - container.left) / cubeSize);
       const y = Math.floor((event.clientY - container.top) / cubeSize);
-      headerDrawOneCube(x, y, boardState);
-      if (boardState[y][x] === -1) {
-        // clicked on mine
-        alert("Game Over! You hit a mine!")
-        drawWholeBoard(boardState);
-        // reset game
-        setBoardReady(false);
-        setGameStart(false);
-        setBoardState(clearBoard());
-      } else if (boardState[y][x] > 0) {
-        // draw this square only
-        //headerDrawOneCube(x, y, boardState);
-      } else {
-        // keep drawing surrounding squares until a number is drawn
-        //headerDrawOneCube(x, y, boardState);
+      // check if flag is on that square
+      if (!JSON.stringify(flagPlacements).includes(JSON.stringify([x, y]))) {
+        let numSqr = headerDrawOneCube(x, y, boardState);
+        setNumSqrLeft(numSqr);
+        //console.log(numSqr);
+        if (boardState[y][x] === -1) {
+          // clicked on mine
+          alert("Game Over! You hit a mine!")
+          drawWholeBoard(boardState);
+          setNumSqrLeft(0);
+          // reset game
+          setBoardReady(false);
+          setGameStart(false);
+          setBoardState(clearBoard());
+        } else if (numSqr === numMine) {
+          // found all the mines, won; reset game
+          alert("Congrats! You won!");
+          setBoardReady(false);
+          setGameStart(false);
+          setBoardState(clearBoard());
+        }
       }
     } else {
       // indicates first move has been made and underlying elements have been created
-      setGameStart(true);
       let canvas = document.getElementById('board');
       let container = canvas.getBoundingClientRect();
       const x = Math.floor((event.clientX - container.left) / cubeSize);
       const y = Math.floor((event.clientY - container.top) / cubeSize);
       let calcBoard = calculateUnderlyingBoard(x, y);
-      headerDrawOneCube(x, y, calcBoard);
+      let numSqr = headerDrawOneCube(x, y, calcBoard);
+      setGameStart(true);
+      setNumSqrLeft(numSqr);
+      setFlagPlacements([]);
     }
   }
 
+  // puts down flag if square is covered and has no flag, removes flag if square is covered and has a flag
+  function putFlag(event) {
+    event.preventDefault();
+    if (gameStart) {
+      let canvas = document.getElementById('board');
+      let context = canvas.getContext('2d');
+      let container = canvas.getBoundingClientRect();
+      const x = Math.floor((event.clientX - container.left) / cubeSize);
+      const y = Math.floor((event.clientY - container.top) / cubeSize);
+      if (!JSON.stringify(uncoveredSqr).includes(JSON.stringify([x, y]))) {
+        if (JSON.stringify(flagPlacements).includes(JSON.stringify([x, y]))) {
+          // there is a flag, so remove flag
+          let updatedArr = flagPlacements.filter(item => !arrEqs(item, [x, y]));
+          setFlagPlacements(updatedArr);
 
-  // is called everytime runGame or the boardState is modified, used to run the whole simulation
-  /* useEffect(() => {
-    let timer; // timer keeps speed of the simulation
-    if (runGame) {
-      timer = setTimeout(() => {
-        runSimulation();
-      }, 1000);
+          // draw covered square
+          const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+          context.fillStyle = coveredColor;
+          context.fillRect(startX + (cubeSize * x), startY + (cubeSize * y), cubeSize, cubeSize);
+        } else {
+          // there is no flag, so add flag
+          flagPlacements.push([x, y]);
+
+          // draw image of flag
+          var mineImg = new Image();
+          mineImg.onload = function() {
+            context.drawImage(mineImg, startX + (x * cubeSize), startY + (y * cubeSize), 30, 30);
+          };
+          mineImg.src = "/public/flag.png";
+            }
+      }
+      //headerDrawOneCube(x, y, boardState);
     }
-
-    return () => clearTimeout(timer)
-  }, [runGame, boardState]) */
+  }
+  
 
   return (
     <>
@@ -481,7 +472,8 @@ function App() {
       </div>
       <div>
         <canvas id='board' width={width} height={height} 
-        onClick={boardReady ? cubeClicked : () => alert("Please generate the board before starting the game!")}></canvas>
+        onClick={boardReady ? cubeClicked : () => alert("Please generate the board before starting the game!")}
+        onContextMenu={boardReady ? putFlag : () => alert("Please generate the board before starting the game!")}></canvas>
       </div>
       
       <div>
