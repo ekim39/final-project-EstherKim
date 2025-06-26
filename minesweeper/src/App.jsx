@@ -256,6 +256,57 @@ function App() {
     drawBorder();
 
   } */
+  function drawWholeBoard(theBoard) {
+    let canvas = document.getElementById('board');
+    let context = canvas.getContext('2d');
+
+    const squareBackground = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color');
+    
+    
+    for (let i = 0; i < grid.y; i++) {
+      for (let j = 0; j < grid.x; j++) {
+        // if theBoard[i][j] === 0, then all that is needed is to fill out background
+        context.fillStyle = squareBackground;
+        context.fillRect(startX + (cubeSize * j), startY + (cubeSize * i), cubeSize, cubeSize);   
+        
+        if (theBoard[i][j] === -1) {
+          // there is a mine on the board
+          var mineImg = new Image();
+          mineImg.onload = function() {
+            context.drawImage(mineImg, startX + (j * cubeSize), startY + (i * cubeSize), 30, 30);
+          };
+          mineImg.src = "/public/mine.png";
+        } else if (theBoard[i][j] > 0 && theBoard[i][j] < 9) {
+          // there is a number on the board
+          context.font = 'bold 20px Arial';
+          if (theBoard[i][j] === 1) {
+            context.fillStyle = 'blue';
+          } else if (theBoard[i][j] === 2) {
+            context.fillStyle = 'green';
+          } else if (theBoard[i][j] === 3) {
+            context.fillStyle = 'red';
+          } else if (theBoard[i][j] === 4) {
+            context.fillStyle = 'purple';
+          } else if (theBoard[i][j] === 5) {
+            context.fillStyle = 'yellow';
+          } else if (theBoard[i][j] === 6) {
+            context.fillStyle = 'dark blue';
+          } else if (theBoard[i][j] === 7) {
+            context.fillStyle = 'black';
+          } else {
+            context.fillStyle = 'gray'; 
+          }
+          
+          context.textAlign = 'center';
+          context.textBaseline = 'middle';
+
+          const fx = (startX + (cubeSize * j)) + (cubeSize / 2);
+          const fy = (startY + (cubeSize * i)) + (cubeSize / 2);
+          context.fillText(theBoard[i][j].toString(), fx, fy);
+        }
+      }
+    }
+  }
 
   function drawOneCube(x, y, theBoard, checkRest, alreadyChecked) {
     let canvas = document.getElementById('board');
@@ -375,7 +426,7 @@ function App() {
     drawOneCube(x, y, theBoard, [], []);
   }
 
-  // !!! TODO - need to add flag function; when a square with 0 mines around it is clicked, should keep opening surrounding squares until it hits a number; need to add a win function, wins when all squares besides mines are opened (maybe have a tracker to keep track of squares still left unopened).
+  // !!! TODO - need to add flag function; need to add a win function, wins when all squares besides mines are opened (maybe have a tracker to keep track of squares still left unopened); when lose, uncover all squares.
   function cubeClicked(event) {
     if (gameStart) {
       let canvas = document.getElementById('board');
@@ -386,6 +437,7 @@ function App() {
       if (boardState[y][x] === -1) {
         // clicked on mine
         alert("Game Over! You hit a mine!")
+        drawWholeBoard(boardState);
         // reset game
         setBoardReady(false);
         setGameStart(false);
