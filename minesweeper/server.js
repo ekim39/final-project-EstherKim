@@ -18,6 +18,7 @@ const app = express();
 // middleware for static files
 //app.use( express.static( 'public' ) )
 app.use('/assets', express.static(assetsDir));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use( express.json() ) // converts json in request messages automatically
 
 // set up session information
