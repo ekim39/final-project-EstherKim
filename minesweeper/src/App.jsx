@@ -173,8 +173,6 @@ function App() {
         numMineStillLeft--;
       }
     }
-    console.log("end board at calcUnderlying")
-    console.log(completelynewboard);
     setBoardState(completelynewboard);
     return completelynewboard;
   }
@@ -259,7 +257,7 @@ function App() {
 
   } */
 
-  function drawOneCube(x, y) {
+  function drawOneCube(x, y, theBoard, checkRest, alreadyChecked) {
     let canvas = document.getElementById('board');
     let context = canvas.getContext('2d');
 
@@ -268,32 +266,32 @@ function App() {
     //context.strokeStyle = squareInner;
     context.fillStyle = squareBackground;
 
-    // if boardState[y][x] === 0, then all that is needed is to fill out background
+    // if theBoard[y][x] === 0, then all that is needed is to fill out background
     context.fillRect(startX + (cubeSize * x), startY + (cubeSize * y), cubeSize, cubeSize);   
     
-    if (boardState[y][x] === -1) {
+    if (theBoard[y][x] === -1) {
       // there is a mine on the board
       var mineImg = new Image();
       mineImg.onload = function() {
         context.drawImage(mineImg, startX + (x * cubeSize), startY + (y * cubeSize), 30, 30);
       };
       mineImg.src = "/public/mine.png";
-    } else if (boardState[y][x] > 0 && boardState[y][x] < 9) {
+    } else if (theBoard[y][x] > 0 && theBoard[y][x] < 9) {
       // there is a number on the board
       context.font = 'bold 20px Arial';
-      if (boardState[y][x] === 1) {
+      if (theBoard[y][x] === 1) {
         context.fillStyle = 'blue';
-      } else if (boardState[y][x] === 2) {
+      } else if (theBoard[y][x] === 2) {
         context.fillStyle = 'green';
-      } else if (boardState[y][x] === 3) {
+      } else if (theBoard[y][x] === 3) {
         context.fillStyle = 'red';
-      } else if (boardState[y][x] === 4) {
+      } else if (theBoard[y][x] === 4) {
         context.fillStyle = 'purple';
-      } else if (boardState[y][x] === 5) {
+      } else if (theBoard[y][x] === 5) {
         context.fillStyle = 'yellow';
-      } else if (boardState[y][x] === 6) {
+      } else if (theBoard[y][x] === 6) {
         context.fillStyle = 'dark blue';
-      } else if (boardState[y][x] === 7) {
+      } else if (theBoard[y][x] === 7) {
         context.fillStyle = 'black';
       } else {
         context.fillStyle = 'gray'; 
@@ -304,8 +302,77 @@ function App() {
 
       const fx = (startX + (cubeSize * x)) + (cubeSize / 2);
       const fy = (startY + (cubeSize * y)) + (cubeSize / 2);
-      context.fillText(boardState[y][x].toString(), fx, fy);
+      context.fillText(theBoard[y][x].toString(), fx, fy);
+    } else if (theBoard[y][x] === 0) {
+      alreadyChecked.push([x, y]);
+      if (x !== 0) {
+        // not at leftside
+        // checking if the coordinates we want to add are already in checkRest or alreadyChecked array
+        if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y])) &&
+        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y]))) {
+          checkRest.push([x - 1, y]);
+        }
+        
+        if (y !== 0) {
+          // not at top left corner
+          if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y - 1])) &&
+          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y - 1]))) {
+            checkRest.push([x - 1, y - 1]);
+          }
+        }
+      }
+      if (x !== (grid.x - 1)) {
+        // not at rightside
+        if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y])) && 
+        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y]))) {
+          checkRest.push([x + 1, y]);
+        }
+        if (y !== (grid.y - 1)) {
+          // not at bottom right corner
+          if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y + 1])) &&
+          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y + 1]))) {
+            checkRest.push([x + 1, y + 1]);
+          }
+        }
+      }
+      if (y !== 0) {
+        // not at top
+        if (!JSON.stringify(checkRest).includes(JSON.stringify([x, y - 1])) && 
+        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y - 1]))) {
+          checkRest.push([x, y - 1]);
+        }
+        
+        if (x !== (grid.x - 1)) {
+          // not at top right corner
+          if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y - 1])) && 
+          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y - 1]))) {
+            checkRest.push([x + 1, y - 1]);
+          }
+        }
+      }
+      if (y !== (grid.y - 1)) {
+        // not at bottom
+        if (!JSON.stringify(checkRest).includes(JSON.stringify([x, y + 1])) && 
+        !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y + 1]))) {
+          checkRest.push([x, y + 1]);
+        }
+        if (x !== 0) {
+          // not at bottom left corner
+          if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y + 1])) && 
+          !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y + 1]))) {
+            checkRest.push([x - 1, y + 1]);
+          }
+        }
+      }
     }
+    if (checkRest.length !== 0) {
+      let removedElement = checkRest.shift();
+      drawOneCube(removedElement[0], removedElement[1], theBoard, checkRest, alreadyChecked);
+    }
+  }
+
+  function headerDrawOneCube(x, y, theBoard) {
+    drawOneCube(x, y, theBoard, [], []);
   }
 
   // !!! TODO - need to add flag function; when a square with 0 mines around it is clicked, should keep opening surrounding squares until it hits a number; need to add a win function, wins when all squares besides mines are opened (maybe have a tracker to keep track of squares still left unopened).
@@ -315,9 +382,9 @@ function App() {
       let container = canvas.getBoundingClientRect();
       const x = Math.floor((event.clientX - container.left) / cubeSize);
       const y = Math.floor((event.clientY - container.top) / cubeSize);
+      headerDrawOneCube(x, y, boardState);
       if (boardState[y][x] === -1) {
         // clicked on mine
-        drawOneCube(x, y);
         alert("Game Over! You hit a mine!")
         // reset game
         setBoardReady(false);
@@ -325,10 +392,10 @@ function App() {
         setBoardState(clearBoard());
       } else if (boardState[y][x] > 0) {
         // draw this square only
-        drawOneCube(x, y);
+        //headerDrawOneCube(x, y, boardState);
       } else {
         // keep drawing surrounding squares until a number is drawn
-        drawOneCube(x, y);
+        //headerDrawOneCube(x, y, boardState);
       }
     } else {
       // indicates first move has been made and underlying elements have been created
@@ -337,8 +404,8 @@ function App() {
       let container = canvas.getBoundingClientRect();
       const x = Math.floor((event.clientX - container.left) / cubeSize);
       const y = Math.floor((event.clientY - container.top) / cubeSize);
-      calculateUnderlyingBoard(x, y);
-      drawOneCube(x, y);
+      let calcBoard = calculateUnderlyingBoard(x, y);
+      headerDrawOneCube(x, y, calcBoard);
     }
   }
 
