@@ -6,7 +6,6 @@ import Slider from '@mui/material/Slider'; */
 import './App.css'
 
 function App() {
-  //const [count, setCount] = useState(0)
   const [cubeSize, setCubeSize] = useState(30);
   const [grid, setGrid] = useState({x: 18, y: 14});
   const [width, setWidth] = useState(grid.x * cubeSize);
@@ -23,6 +22,9 @@ function App() {
   const [boardReady, setBoardReady] = useState(false);
   const [gameStart, setGameStart] = useState(false);
   // interactivity (sliders)
+
+  // username information, "Guest" is default for not logged in users
+  const [user, setUser] = useState("Guest");
 
 
   // checks if two arrays are equal (by value)
@@ -454,19 +456,10 @@ function App() {
           mineImg.src = "/public/flag.png";
             }
       }
-      //headerDrawOneCube(x, y, boardState);
     }
   }
 
-  /*
-  const [grid, setGrid] = useState({x: 18, y: 14});
-  const [width, setWidth] = useState(grid.x * cubeSize);
-  const [height, setHeight] = useState(grid.y * cubeSize);
-  const [numMine, setNumMine] = useState(40);
-  const [numSqrLeft, setNumSqrLeft] = useState(grid.x * grid.y);
-  const [boardReady, setBoardReady] = useState(false);
-  const [gameStart, setGameStart] = useState(false); */
-
+  // Preset Game Modes
   function easyMode() {
     setGrid({x: 10, y: 8});
     setWidth(10 * cubeSize);
@@ -496,12 +489,70 @@ function App() {
     setBoardReady(false);
     setGameStart(false);
   }
+
+
+  /* 
+
+fetch( '/add', {
+method:'POST',
+body: JSON.stringify( json ),
+headers: { 'Content-Type': 'application/json' }
+})
+.then( response => {
+if (response.status === 200) {
+    alert("Item was successfully added!");
+  } else {
+    alert("Oops, something went wrong!");
+  }
+} )
+.then( json => {
+setItems( json );
+window.location.reload();
+})
+} */
+  
+
+  function login() {
+    const username = document.querySelector( "#username" ),
+          password = document.querySelector( "#password" ),
+          json = {"username": username.value, "password": password.value}
+
+          
+
+    fetch('/login', {
+      method:'POST',
+      body: JSON.stringify( json ),
+      headers: {'Content-Type': 'application/json'}
+    }).then( response => {
+      if (response.status === 200) {
+        alert("Successfully logged in/created account!");
+        setUser(username.value);
+      } else {
+        alert("Oops, that username exists! Please try again or use a different username.");
+      }
+    }).catch(err => {
+      console.error("Fetch failed:", err);
+    });
+  }
   
 
   return (
     <>
       <div>
         <h1>Minesweeper</h1>
+      </div>
+      <div>
+        <p>If you are a new or returning user, enter your username and password to save your scores (if the username doesn't exist, a new account will be created):</p>
+        <br/>
+        <label htmlFor='username'>Username:</label>
+        <input type="text" id="username"></input>
+        <br/>
+        <label htmlFor='password'>Password:</label>
+        <input type="password" id="password"></input>
+        <br/>
+        <button onClick={() => login()}>
+            Register/Login
+        </button>
       </div>
       <div>
         <canvas id='board' width={width} height={height} 

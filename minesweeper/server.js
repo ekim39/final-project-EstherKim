@@ -95,6 +95,33 @@ app.get( "/", (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 })
 
+// logs in a user if account exists, creates account if it doesn't exist
+app.post( "/login", async (req, res) => {
+    const userExistsCount = await usersCollection.countDocuments({ username: req.body.username, password: req.body.password });
+    if (userExistsCount !== 0) {
+        // user exists, successfully logged in
+        req.session.loggedIn = true;
+        const currentuser = await usersCollection.findOne({ username: req.body.username, password: req.body.password });
+        req.session.userID = currentuser._id.toString();
+        res.status(200);
+        res.json(currentuser);
+    } else {
+        const usernameExistsCount = await usersCollection.countDocuments({ username: req.body.username });
+        if (usernameExistsCount === 0 && req.body.username !== null && req.body.username !== "" && req.body.username !== "Guest") {
+            // user doesn't exist, but username is available, creating account
+            let insertingUser = req.body;
+            const result = await usersCollection.insertOne( insertingUser );
+            res.status(200);
+            res.json(result);
+        } else {
+            // username does exist, but password was incorrect
+            res.status(403);
+            res.send("Failed to login!");
+        }
+        
+    }
+})
+
 /* app.get( "/", authenticate, (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 }) */
