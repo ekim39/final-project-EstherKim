@@ -8,16 +8,16 @@ import './App.css'
 function App() {
   //const [count, setCount] = useState(0)
   const [cubeSize, setCubeSize] = useState(30);
-  const [width, setWidth] = useState(18 * cubeSize);
-  const [height, setHeight] = useState(14 * cubeSize);
+  const [grid, setGrid] = useState({x: 18, y: 14});
+  const [width, setWidth] = useState(grid.x * cubeSize);
+  const [height, setHeight] = useState(grid.y * cubeSize);
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
-  const [grid, setGrid] = useState({x: 18, y: 14}); // min should be at least 3
   // keeps track of the current board state
-  // is a 2D array, y rows and x cols, with 1 being alive and 0 being dead
+  // numbers 1-8 means there are that many mines around that square, -1 means a mine, 0 means no mines
   const [boardState, setBoardState] = useState([]);
   const [numMine, setNumMine] = useState(40);
-  const [flagPlacements, setFlagPlacements] = useState([]); // stores where flags are placed
+  const [flagPlacements, setFlagPlacements] = useState([]); // stores where flags are placed, (x, y) coordinates
   const [uncoveredSqr, setUncoveredSqr] = useState([]); // stores where the covered and uncovered squares are (0 means covered, 1 means uncovered)
   const [numSqrLeft, setNumSqrLeft] = useState(grid.x * grid.y);
   const [boardReady, setBoardReady] = useState(false);
@@ -223,9 +223,9 @@ function App() {
           } else if (theBoard[i][j] === 4) {
             context.fillStyle = 'purple';
           } else if (theBoard[i][j] === 5) {
-            context.fillStyle = 'yellow';
+            context.fillStyle = 'orange';
           } else if (theBoard[i][j] === 6) {
-            context.fillStyle = 'dark blue';
+            context.fillStyle = '#e0099c';
           } else if (theBoard[i][j] === 7) {
             context.fillStyle = 'black';
           } else {
@@ -278,9 +278,9 @@ function App() {
       } else if (theBoard[y][x] === 4) {
         context.fillStyle = 'purple';
       } else if (theBoard[y][x] === 5) {
-        context.fillStyle = 'yellow';
+        context.fillStyle = 'orange';
       } else if (theBoard[y][x] === 6) {
-        context.fillStyle = 'dark blue';
+        context.fillStyle = '#e0099c';
       } else if (theBoard[y][x] === 7) {
         context.fillStyle = 'black';
       } else {
@@ -364,15 +364,9 @@ function App() {
     }
     if (checkRest.length !== 0) {
       let removedElement = checkRest.shift();
-/*       console.log("recursing...");
-      console.log(removedElement);
-      console.log(checkRest)
-      console.log(trackSqrLeft); */
       alreadyChecked.push([x, y]);
       return drawOneCube(removedElement[0], removedElement[1], theBoard, checkRest, alreadyChecked, trackSqrLeft, trackUncoveredSqr);
     } else {
-      /* console.log("done");
-      console.log(trackSqrLeft); */
       setUncoveredSqr(trackUncoveredSqr);
       return trackSqrLeft;
     }
@@ -386,7 +380,7 @@ function App() {
     }
   }
 
-  // !!! TODO - need to add flag function; need to add a win function, wins when all squares besides mines are opened (maybe have a tracker to keep track of squares still left unopened);
+  // !!! TODO - display how many flags have been used?; add custom difficulty; add way to add username; add timer; add leaderboard/scoreboard;
   function cubeClicked(event) {
     if (gameStart) {
       let canvas = document.getElementById('board');
@@ -463,6 +457,45 @@ function App() {
       //headerDrawOneCube(x, y, boardState);
     }
   }
+
+  /*
+  const [grid, setGrid] = useState({x: 18, y: 14});
+  const [width, setWidth] = useState(grid.x * cubeSize);
+  const [height, setHeight] = useState(grid.y * cubeSize);
+  const [numMine, setNumMine] = useState(40);
+  const [numSqrLeft, setNumSqrLeft] = useState(grid.x * grid.y);
+  const [boardReady, setBoardReady] = useState(false);
+  const [gameStart, setGameStart] = useState(false); */
+
+  function easyMode() {
+    setGrid({x: 10, y: 8});
+    setWidth(10 * cubeSize);
+    setHeight(8 * cubeSize);
+    setNumMine(10);
+    setNumSqrLeft(10 * 8);
+    setBoardReady(false);
+    setGameStart(false);
+  }
+
+  function mediumMode() {
+    setGrid({x: 18, y: 14});
+    setWidth(18 * cubeSize);
+    setHeight(14 * cubeSize);
+    setNumMine(40);
+    setNumSqrLeft(18 * 14);
+    setBoardReady(false);
+    setGameStart(false);
+  }
+
+  function hardMode() {
+    setGrid({x: 24, y: 20});
+    setWidth(24 * cubeSize);
+    setHeight(20 * cubeSize);
+    setNumMine(99);
+    setNumSqrLeft(24 * 20);
+    setBoardReady(false);
+    setGameStart(false);
+  }
   
 
   return (
@@ -479,6 +512,17 @@ function App() {
       <div>
         <button onClick={() => drawBoard()}>
           Generate Board
+        </button>
+        <br/>
+        <h4>Difficulty Settings:</h4>
+        <button onClick={() => easyMode()}>
+          Easy
+        </button>
+        <button onClick={() => mediumMode()}>
+          Medium
+        </button>
+        <button onClick={() => hardMode()}>
+          Hard
         </button>
         {/* <button onClick={() => {runGame ? setRunGame(false) : setRunGame(true)}}>
           {runGame ? 'Stop' : 'Start'}
