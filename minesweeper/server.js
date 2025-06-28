@@ -36,24 +36,6 @@ app.use(session({
     
   }));
 
-/* app.use( passport.initialize() )
-app.use( passport.session() )
-passport.serializeUser(function (user, cb) {
-    cb(null, user.id)
-})
-passport.deserializeUser(function (id, cb) {
-    cb(null, id)
-}) */
-
-// middleware for authenticating users
-/* function authenticate(req, res, next) {
-    if (req.session.loggedIn === true) {
-        next();
-    } else {
-        res.status(403);
-        res.redirect('/login.html');
-    }
-} */
 
 // this is the url for the database
 const uri = `mongodb+srv://${process.env.USERNAME}:${process.env.PASS}@${process.env.HOST}/?retryWrites=true&w=majority&appName=a3-Webware`;
@@ -111,6 +93,7 @@ app.post( "/login", async (req, res) => {
             // user doesn't exist, but username is available, creating account
             let insertingUser = req.body;
             const result = await usersCollection.insertOne( insertingUser );
+            res.set('Content-Type', 'application/json');
             res.status(200);
             res.json(result);
         } else {
@@ -127,6 +110,26 @@ app.get("/logout", async (req, res, next) => {
     req.session.userId = null;
     res.status(200);
     res.send("Logged out successfully");
+})
+
+app.post("/saveScore", async (req, res, next) => {
+    if (req.session.loggedIn) {
+        const userScoreExists = await scoresCollection.countDocuments({ score: req.body.score, mode: req.body.mode, scoreUser: req.session.userID });
+        if (userScoreExists === 0) {
+            let insertingScore = req.body;
+            insertingScore.scoreUser = req.session.userID;
+            const result = await scoresCollection.insertOne(insertingScore);
+            res.set('Content-Type', 'application/json');
+            res.status(200);
+            res.json(result);
+        } else {
+            res.status(200);
+            res.send("User has already saved a score with the same time.")
+        } 
+    } else {
+        res.status(403);
+        res.send("User is not logged in ");
+    }
 })
 
 /* app.get( "/", authenticate, (req, res) => {

@@ -28,6 +28,11 @@ function App() {
   // username information; "Guest" is default for not logged in users
   const [user, setUser] = useState("Guest");
 
+  // for scoreboard
+  const [recentTime, setRecentTime] = useState(-1); // holds most recent time; -1 means there is no recentTime to save
+  const [didSaveTime, setDidSaveTime] = useState(false); // whether most recent time has been saved
+  const [theMode, setTheMode] = useState("Medium"); // holds what mode the recentTime was achieved on
+
   // stopwatch for recording time took to complete game by user
   const [timer, setTimer] = useState(0); // stores how much time has passed since starting timer (in milliseconds)
   const [isTimerOn, setIsTimerOn] = useState(false); // true if timer is running, false otherwise
@@ -163,6 +168,10 @@ function App() {
     let flagNum = document.getElementById("flagNumDisplay");
     flagNum.textContent = `Number of Flags to Place: ${numMine}`;
     setIsTimerOn(false);
+
+    // hides leaderboard
+    const scoreboard = document.getElementById('leaderboard');
+    scoreboard.style.display = 'none';
   }
 
   // returns true or false for whether tx and ty are valid coordinates to place a mine
@@ -393,7 +402,7 @@ function App() {
     }
   }
 
-  // !!! TODO - add timer; add leaderboard/scoreboard; style;
+  // !!! TODO - add leaderboard/scoreboard; style;
   function cubeClicked(event) {
     if (gameStart) {
       let canvas = document.getElementById('board');
@@ -418,6 +427,9 @@ function App() {
         } else if (numSqr === numMine) {
           // found all the mines, won; reset game
           alert(`Congrats! You won!\nYou took a total of: ${Math.floor(timer / 60000)} min ${Math.floor((timer % 60000) / 1000)} sec`);
+          setRecentTime(timer);
+          setDidSaveTime(false);
+
           setBoardReady(false);
           setGameStart(false);
           setBoardState(clearBoard());
@@ -490,6 +502,11 @@ function App() {
     const menu = document.getElementById('customMenu');
     menu.style.display = 'none';
 
+    // hides leaderboard
+    const scoreboard = document.getElementById('leaderboard');
+    scoreboard.style.display = 'none';
+    setTheMode('Easy');
+
     setIsTimerOn(false);
 
     setGrid({x: 10, y: 8});
@@ -507,6 +524,11 @@ function App() {
 
     const menu = document.getElementById('customMenu');
     menu.style.display = 'none';
+
+    // hides leaderboard
+    const scoreboard = document.getElementById('leaderboard');
+    scoreboard.style.display = 'none';
+    setTheMode('Medium');
 
     setIsTimerOn(false);
 
@@ -526,6 +548,11 @@ function App() {
     const menu = document.getElementById('customMenu');
     menu.style.display = 'none';
 
+    // hides leaderboard
+    const scoreboard = document.getElementById('leaderboard');
+    scoreboard.style.display = 'none';
+    setTheMode('Hard');
+
     setIsTimerOn(false);
 
     setGrid({x: 24, y: 20});
@@ -537,9 +564,15 @@ function App() {
     setGameStart(false);
   }
 
+  // custom game mode, can change board size and number of mines
   function customMode() {
     const menu = document.getElementById('customMenu');
     menu.style.display = 'block';
+
+    // hides leaderboard
+    const scoreboard = document.getElementById('leaderboard');
+    scoreboard.style.display = 'none';
+    setTheMode('Custom');
 
     setIsTimerOn(false);
   }
@@ -547,7 +580,8 @@ function App() {
   function login() {
     const username = document.querySelector( "#username" ),
           password = document.querySelector( "#password" ),
-          json = {"username": username.value, "password": password.value}   
+          json = {"username": username.value, "password": password.value},
+          userVal = username.value   
 
     fetch('/login', {
       method:'POST',
@@ -556,7 +590,7 @@ function App() {
     }).then(response => {
       if (response.status === 200) {
         alert("Successfully logged in/created account!");
-        setUser(username.value);
+        setUser(userVal);
       } else {
         alert("Oops, that username exists! Please try again or use a different username.");
       }
@@ -605,6 +639,43 @@ function App() {
     setNumSqrLeft(newValue * regX);
   }
 
+  // highscore/leaderboard
+  function displayScores() {
+    const scoreboard = document.getElementById('leaderboard');
+    scoreboard.style.display = 'block';
+  }
+
+  function saveScore() {
+    if (user === 'Guest') {
+      // user is not signed in, cannot save
+      alert('Please sign in to save scores!');
+    } else {
+      // user is signed in
+      if (recentTime === -1) {
+        alert('Please play and win a game before saving!');
+      } else if (didSaveTime) {
+        alert('The most recent score has already been saved!');
+      } else if (theMode === 'Custom') {
+        alert('The scoreboard does not save times achieved on the Custom difficulty.')
+      } else { 
+        const json = {"score": recentTime, "mode": theMode}
+
+        fetch('/saveScore', {
+          method:'POST',
+          body: JSON.stringify( json ),
+          headers: {'Content-Type': 'application/json'}
+        }).then(response => {
+          if (response.status === 200) {
+            alert("Score was saved!")
+            setDidSaveTime(true);
+          } else {
+            alert("Oops, failed to save score! Make sure you are logged in.")
+          }
+        })
+      }
+    }
+  }
+
   // timer functions
   // starts timer if isTimerOn is true (updates every 1000 ms)
   useEffect(() => {
@@ -630,6 +701,9 @@ function App() {
 
   return (
     <>
+      <div>
+        <p> <b>User:</b> {user}</p>
+      </div>
       <div>
         <h1>Minesweeper</h1>
       </div>
@@ -726,6 +800,21 @@ function App() {
               step={1}
             />
           </Grid>
+        </div>
+
+        <br/>
+        <div>
+          <button onClick={() => saveScore()}>
+            Save Recent Score
+          </button>
+        </div>
+
+        <br />
+        <button onClick={() => displayScores()}>
+          Display Highscores
+        </button>
+        <div id='leaderboard'>
+          
         </div>
 
       </div>
