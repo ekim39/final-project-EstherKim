@@ -581,6 +581,13 @@ function App() {
     setWidth(newValue * cubeSize);
   }
 
+  const handleChangeGridY = (event, newValue) => {
+    let regX = grid.x;
+    setGrid({x: regX, y: newValue});
+    setHeight(newValue * cubeSize);
+  }
+
+
   return (
     <>
       <div>
@@ -650,15 +657,30 @@ function App() {
           </Grid>
           <br/>
           <Typography id="changeGridX" gutterBottom>
-            Board Cubes Width
+            Board Tiles Width
           </Typography>
           <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             <Slider
               value={typeof grid.x === 'number' ? grid.x : 0}
               onChange={handleChangeGridX}
               min={4}
-              max={Math.floor(document.body.offsetWidth / 30)}
+              max={Math.floor(document.body.offsetWidth / 30) < 30? Math.floor(document.body.offsetWidth / 30) : 30}
               aria-labelledby="changeGridX"
+              valueLabelDisplay="auto"
+              step={1}
+            />
+          </Grid>
+          <br/>
+          <Typography id="changeGridY" gutterBottom>
+            Board Tiles Height
+          </Typography>
+          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+            <Slider
+              value={typeof grid.y === 'number' ? grid.y : 0}
+              onChange={handleChangeGridY}
+              min={4}
+              max={26}
+              aria-labelledby="changeGridY"
               valueLabelDisplay="auto"
               step={1}
             />
