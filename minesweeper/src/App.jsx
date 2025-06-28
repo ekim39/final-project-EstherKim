@@ -407,7 +407,6 @@ function App() {
     }
   }
 
-  // !!! TODO - add leaderboard/scoreboard; style;
   function cubeClicked(event) {
     if (gameStart) {
       let canvas = document.getElementById('board');
@@ -860,6 +859,7 @@ function App() {
     <>
       <div>
         <p> <b>User:</b> {user}</p>
+        <p> <b>Mode:</b> {theMode}</p>
       </div>
       <div>
         <h1>Minesweeper</h1>

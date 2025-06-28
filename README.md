@@ -1,5 +1,7 @@
 # Final Project: Minesweeper (Esther Kim)
 
+Render: https://final-project-estherkim.onrender.com
+
 ## Description
 I recreated the game minesweeper using the game on google as reference (https://g.co/kgs/A6ZeS5o). The player can generate the board and then click any one of the tiles to start the game. If the player hits a mine, the game is over. If the player successfully uncovers all tiles except the ones with mines, then they win. The player can place down flags on the tiles with mines to mark them, which will prevent them from uncovering the tile with a flag on it.
 
@@ -18,9 +20,6 @@ A challenge was keeping figuring out how to set up a timer so that it would only
 
 Submit a second PR on the final project repo to turn in your app and code.
 
-Deploy your app, in the form of a webpage, to Glitch/Heroku/Digital Ocean or some other service; it is critical that the application functions correctly wherever you post it.
-
-1. A link to the project itself
 3. An outline of the technologies you used and how you used them.
 6. What accessibility features you included in your project.
 
