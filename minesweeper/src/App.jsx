@@ -274,7 +274,9 @@ function App() {
 
     // indicate this square had been uncovered
     trackSqrLeft--;
-    trackUncoveredSqr.push([x, y]);
+    if (!JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y]))) {
+      trackUncoveredSqr.push([x, y]);
+    }
     
     if (theBoard[y][x] === -1) {
       // there is a mine on the board
@@ -353,7 +355,8 @@ function App() {
         // not at top
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x, y - 1])) && 
         !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y - 1])) && 
-        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y - 1])) && !JSON.stringify(flagPlacements).includes(JSON.stringify([x, y - 1]))) {
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y - 1])) && 
+        !JSON.stringify(flagPlacements).includes(JSON.stringify([x, y - 1]))) {
           checkRest.push([x, y - 1]);
         }
         
@@ -392,7 +395,7 @@ function App() {
       return drawOneCube(removedElement[0], removedElement[1], theBoard, checkRest, alreadyChecked, trackSqrLeft, trackUncoveredSqr);
     } else {
       setUncoveredSqr(trackUncoveredSqr);
-      return trackSqrLeft;
+      return trackUncoveredSqr;
     }
   }
 
@@ -413,9 +416,8 @@ function App() {
       const y = Math.floor((event.clientY - container.top) / cubeSize);
       // check if flag is on that square
       if (!JSON.stringify(flagPlacements).includes(JSON.stringify([x, y]))) {
-        let numSqr = headerDrawOneCube(x, y, boardState);
-        setNumSqrLeft(numSqr);
-        //console.log(numSqr);
+        let numSqrUn = headerDrawOneCube(x, y, boardState);
+        setNumSqrLeft((grid.x * grid.y) - numSqrUn);
         if (boardState[y][x] === -1) {
           // clicked on mine
           alert("Game Over! You hit a mine!")
@@ -427,7 +429,7 @@ function App() {
           setBoardState(clearBoard());
           setFlagPlacements([]);
           setIsTimerOn(false);
-        } else if (numSqr === numMine) {
+        } else if (((grid.x * grid.y) - numSqrUn.length) === numMine) {
           //!!!
           // found all the mines, won; reset game
           alert(`Congrats! You won!\nYou took a total of: ${Math.floor(timer / 60000)} min ${Math.floor((timer % 60000) / 1000)} sec`);
