@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-/* import Box from '@mui/material/Box';
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import Slider from '@mui/material/Slider'; */
+import Slider from '@mui/material/Slider';
 import './App.css'
 
 function App() {
@@ -114,14 +114,7 @@ function App() {
   }
 
   function clearBoard() {
-    //let board = [];
-    /* for (let i = 0; i < grid.y; i++) {
-      board[i] = [];
-      for (let j = 0; j < grid.x; j++) {
-        board[i][j] = 0;
-      }
-    } */
-    return Array.from({ length: grid.y }, () => Array(grid.x).fill(0));
+    return Array.from({length: grid.y}, () => Array(grid.x).fill(0));
   }
 
   // draws the initial board in generating a random board state
@@ -393,7 +386,7 @@ function App() {
     }
   }
 
-  // !!! TODO - display how many flags have been used?; add custom difficulty; add timer; add leaderboard/scoreboard; style;
+  // !!! TODO - add custom difficulty; add timer; add leaderboard/scoreboard; style;
   function cubeClicked(event) {
     if (gameStart) {
       let canvas = document.getElementById('board');
@@ -484,6 +477,9 @@ function App() {
     let flagNum = document.getElementById("flagNumDisplay");
     flagNum.textContent = '';
 
+    const menu = document.getElementById('customMenu');
+    menu.style.display = 'none';
+
     setGrid({x: 10, y: 8});
     setWidth(10 * cubeSize);
     setHeight(8 * cubeSize);
@@ -497,6 +493,9 @@ function App() {
     let flagNum = document.getElementById("flagNumDisplay");
     flagNum.textContent = '';
 
+    const menu = document.getElementById('customMenu');
+    menu.style.display = 'none';
+
     setGrid({x: 18, y: 14});
     setWidth(18 * cubeSize);
     setHeight(14 * cubeSize);
@@ -509,7 +508,10 @@ function App() {
   function hardMode() {
     let flagNum = document.getElementById("flagNumDisplay");
     flagNum.textContent = '';
-    
+
+    const menu = document.getElementById('customMenu');
+    menu.style.display = 'none';
+
     setGrid({x: 24, y: 20});
     setWidth(24 * cubeSize);
     setHeight(20 * cubeSize);
@@ -517,6 +519,11 @@ function App() {
     setNumSqrLeft(24 * 20);
     setBoardReady(false);
     setGameStart(false);
+  }
+
+  function customMode() {
+    const menu = document.getElementById('customMenu');
+    menu.style.display = 'block';
   }
 
   function login() {
@@ -560,6 +567,11 @@ function App() {
       alert("You are not logged in!");
     }
   }
+
+  // functions to handle sliders
+  const handleChangeNumMine = (event, newValue) => {
+    setNumMine(newValue);
+  };
 
   return (
     <>
@@ -609,9 +621,27 @@ function App() {
         <button onClick={() => hardMode()}>
           Hard
         </button>
-        {/* <button onClick={() => {runGame ? setRunGame(false) : setRunGame(true)}}>
-          {runGame ? 'Stop' : 'Start'}
-        </button> */}
+
+        <button onClick={() => customMode()}>
+          Custom
+        </button>
+        <div id='customMenu'>
+          <Typography id="changeNumMine" gutterBottom>
+            Ratio of Initial Alive Cells
+          </Typography>
+          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+            <Slider
+              value={typeof numMine === 'number' ? numMine : 0}
+              onChange={handleChangeNumMine}
+              min={10}
+              max={500}
+              aria-labelledby="changeNumMine"
+              valueLabelDisplay="auto"
+              step={1}
+            />
+          </Grid>
+        </div>
+
       </div>
     </>
   )
