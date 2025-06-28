@@ -159,6 +159,10 @@ function App() {
 
     // indicate that board has been drawn
     setBoardReady(true);
+
+    // update text with number of flags left to place
+    let flagNum = document.getElementById("flagNumDisplay");
+    flagNum.textContent = `Number of Flags to Place: ${numMine}`;
   }
 
   // returns true or false for whether tx and ty are valid coordinates to place a mine
@@ -301,7 +305,8 @@ function App() {
         // checking if the coordinates we want to add are already in checkRest or alreadyChecked array
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y])) &&
         !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y])) && 
-        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y]))) {
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y])) &&
+        !JSON.stringify(flagPlacements).includes(JSON.stringify([x - 1, y]))) {
           checkRest.push([x - 1, y]);
         }
         
@@ -309,7 +314,8 @@ function App() {
           // not at top left corner
           if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y - 1])) &&
           !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y - 1])) && 
-          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y - 1]))) {
+          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y - 1])) && 
+          !JSON.stringify(flagPlacements).includes(JSON.stringify([x - 1, y - 1]))) {
             checkRest.push([x - 1, y - 1]);
           }
         }
@@ -318,14 +324,16 @@ function App() {
         // not at rightside
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y])) && 
         !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y])) && 
-        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y]))) {
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y])) &&
+        !JSON.stringify(flagPlacements).includes(JSON.stringify([x + 1, y]))) {
           checkRest.push([x + 1, y]);
         }
         if (y !== (grid.y - 1)) {
           // not at bottom right corner
           if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y + 1])) &&
           !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y + 1])) &&
-          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y + 1]))) {
+          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y + 1])) &&
+          !JSON.stringify(flagPlacements).includes(JSON.stringify([x + 1, y + 1]))) {
             checkRest.push([x + 1, y + 1]);
           }
         }
@@ -334,7 +342,7 @@ function App() {
         // not at top
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x, y - 1])) && 
         !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y - 1])) && 
-        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y - 1]))) {
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y - 1])) && !JSON.stringify(flagPlacements).includes(JSON.stringify([x, y - 1]))) {
           checkRest.push([x, y - 1]);
         }
         
@@ -342,7 +350,8 @@ function App() {
           // not at top right corner
           if (!JSON.stringify(checkRest).includes(JSON.stringify([x + 1, y - 1])) && 
           !JSON.stringify(alreadyChecked).includes(JSON.stringify([x + 1, y - 1])) && 
-          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y - 1]))) {
+          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x + 1, y - 1])) && 
+          !JSON.stringify(flagPlacements).includes(JSON.stringify([x + 1, y - 1]))) {
             checkRest.push([x + 1, y - 1]);
           }
         }
@@ -351,14 +360,16 @@ function App() {
         // not at bottom
         if (!JSON.stringify(checkRest).includes(JSON.stringify([x, y + 1])) && 
         !JSON.stringify(alreadyChecked).includes(JSON.stringify([x, y + 1])) && 
-        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y + 1]))) {
+        !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x, y + 1])) && 
+        !JSON.stringify(flagPlacements).includes(JSON.stringify([x, y + 1]))) {
           checkRest.push([x, y + 1]);
         }
         if (x !== 0) {
           // not at bottom left corner
           if (!JSON.stringify(checkRest).includes(JSON.stringify([x - 1, y + 1])) && 
           !JSON.stringify(alreadyChecked).includes(JSON.stringify([x - 1, y + 1])) && 
-          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y + 1]))) {
+          !JSON.stringify(trackUncoveredSqr).includes(JSON.stringify([x - 1, y + 1])) && 
+          !JSON.stringify(flagPlacements).includes(JSON.stringify([x - 1, y + 1]))) {
             checkRest.push([x - 1, y + 1]);
           }
         }
@@ -382,7 +393,7 @@ function App() {
     }
   }
 
-  // !!! TODO - display how many flags have been used?; add custom difficulty; add way to add username; add timer; add leaderboard/scoreboard;
+  // !!! TODO - display how many flags have been used?; add custom difficulty; add timer; add leaderboard/scoreboard; style;
   function cubeClicked(event) {
     if (gameStart) {
       let canvas = document.getElementById('board');
@@ -436,6 +447,10 @@ function App() {
       const y = Math.floor((event.clientY - container.top) / cubeSize);
       if (!JSON.stringify(uncoveredSqr).includes(JSON.stringify([x, y]))) {
         if (JSON.stringify(flagPlacements).includes(JSON.stringify([x, y]))) {
+          // update text with number of flags left to place
+          let flagNum = document.getElementById("flagNumDisplay");
+          flagNum.textContent = `Number of Flags to Place: ${numMine - (flagPlacements.length - 1)}`;
+
           // there is a flag, so remove flag
           let updatedArr = flagPlacements.filter(item => !arrEqs(item, [x, y]));
           setFlagPlacements(updatedArr);
@@ -445,6 +460,10 @@ function App() {
           context.fillStyle = coveredColor;
           context.fillRect(startX + (cubeSize * x), startY + (cubeSize * y), cubeSize, cubeSize);
         } else {
+          // update text with number of flags left to place
+          let flagNum = document.getElementById("flagNumDisplay");
+          flagNum.textContent = `Number of Flags to Place: ${numMine - (flagPlacements.length + 1)}`;
+
           // there is no flag, so add flag
           flagPlacements.push([x, y]);
 
@@ -454,13 +473,17 @@ function App() {
             context.drawImage(mineImg, startX + (x * cubeSize), startY + (y * cubeSize), 30, 30);
           };
           mineImg.src = "/public/flag.png";
-            }
+        }
       }
     }
   }
 
   // Preset Game Modes
   function easyMode() {
+    // update text with number of flags left to place
+    let flagNum = document.getElementById("flagNumDisplay");
+    flagNum.textContent = '';
+
     setGrid({x: 10, y: 8});
     setWidth(10 * cubeSize);
     setHeight(8 * cubeSize);
@@ -471,6 +494,9 @@ function App() {
   }
 
   function mediumMode() {
+    let flagNum = document.getElementById("flagNumDisplay");
+    flagNum.textContent = '';
+
     setGrid({x: 18, y: 14});
     setWidth(18 * cubeSize);
     setHeight(14 * cubeSize);
@@ -481,6 +507,9 @@ function App() {
   }
 
   function hardMode() {
+    let flagNum = document.getElementById("flagNumDisplay");
+    flagNum.textContent = '';
+    
     setGrid({x: 24, y: 20});
     setWidth(24 * cubeSize);
     setHeight(20 * cubeSize);
@@ -489,28 +518,6 @@ function App() {
     setBoardReady(false);
     setGameStart(false);
   }
-
-
-  /* 
-
-fetch( '/add', {
-method:'POST',
-body: JSON.stringify( json ),
-headers: { 'Content-Type': 'application/json' }
-})
-.then( response => {
-if (response.status === 200) {
-    alert("Item was successfully added!");
-  } else {
-    alert("Oops, something went wrong!");
-  }
-} )
-.then( json => {
-setItems( json );
-window.location.reload();
-})
-} */
-  
 
   function login() {
     const username = document.querySelector( "#username" ),
@@ -553,7 +560,6 @@ window.location.reload();
       alert("You are not logged in!");
     }
   }
-  
 
   return (
     <>
@@ -577,6 +583,10 @@ window.location.reload();
         <button onClick={() => logout()}>
           Logout
         </button>
+      </div>
+      <br/>
+      <div>
+        <h3 id='flagNumDisplay'></h3>
       </div>
       <div>
         <canvas id='board' width={width} height={height} 
