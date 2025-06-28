@@ -51,7 +51,8 @@ function App() {
     let canvas = document.getElementById('board');
     let context = canvas.getContext('2d');
 
-    const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+    //const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+    const coveredColor = '#ffffff'
 
     context.strokeStyle = coveredColor; 
 
@@ -144,7 +145,8 @@ function App() {
     context.clearRect(startX, startY, width, height);
 
     drawBorder();
-    const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+    //const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+    const coveredColor = '#ffffff';
     context.fillStyle = coveredColor;
 
     // sets all spots on board to 0, clearing the board
@@ -212,7 +214,8 @@ function App() {
     let canvas = document.getElementById('board');
     let context = canvas.getContext('2d');
 
-    const squareBackground = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color');
+    //const squareBackground = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color');
+    const squareBackground = '#b7e9e7';
     
     
     for (let i = 0; i < grid.y; i++) {
@@ -264,7 +267,8 @@ function App() {
     let canvas = document.getElementById('board');
     let context = canvas.getContext('2d');
 
-    const squareBackground = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color');
+    //const squareBackground = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color');
+    const squareBackground = '#b7e9e7'
     //const squareInner = getComputedStyle(document.documentElement).getPropertyValue('background-color');
     //context.strokeStyle = squareInner;
     context.fillStyle = squareBackground;
@@ -477,7 +481,8 @@ function App() {
           setFlagPlacements(updatedArr);
 
           // draw covered square
-          const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+          //const coveredColor = getComputedStyle(document.documentElement).getPropertyValue('color');
+          const coveredColor = '#ffffff';
           context.fillStyle = coveredColor;
           context.fillRect(startX + (cubeSize * x), startY + (cubeSize * y), cubeSize, cubeSize);
         } else {
@@ -671,6 +676,7 @@ function App() {
 
       // creating table to append to scoreboard
       const table = document.createElement('table');
+      table.className = 'table table-responsive';
       const thead = document.createElement('thead');
       const tbody = document.createElement('tbody');
       if (category.value === 'own') {
@@ -681,6 +687,7 @@ function App() {
 
         // header
         const theader = document.createElement('tr');
+        theader.className = 'thead-dark';
         const hdiff = document.createElement('th');
         hdiff.textContent = 'Difficulty';
         theader.appendChild(hdiff);
@@ -745,6 +752,7 @@ function App() {
 
         // header
         const theader = document.createElement('tr');
+        theader.className = 'thead-dark';
         const hrank = document.createElement('th');
         hrank.textContent = 'Rank';
         theader.appendChild(hrank);
@@ -857,131 +865,157 @@ function App() {
 
   return (
     <>
-      <div>
-        <p> <b>User:</b> {user}</p>
-        <p> <b>Mode:</b> {theMode}</p>
-      </div>
-      <div>
-        <h1>Minesweeper</h1>
-      </div>
-      <div>
-        <p>If you are a new or returning user, enter your username and password to save your scores (if the username doesn't exist, a new account will be created):</p>
-        <br/>
-        <label htmlFor='username'>Username:</label>
-        <input type="text" id="username"></input>
-        <br/>
-        <label htmlFor='password'>Password:</label>
-        <input type="password" id="password"></input>
-        <br/>
-        <button onClick={() => login()}>
-          Register/Login
-        </button>
-      </div>
-      <div>
-        <button onClick={() => logout()}>
-          Logout
-        </button>
-      </div>
-      <br/>
-      <div>
-        <h3 id='flagNumDisplay'></h3>
-        <h3 id='stopwatchDisplay'>{isTimerOn? `Time: ${formatTimer(timer)}` : ''}</h3>
-      </div>
-      <div>
-        <canvas id='board' width={width} height={height} 
-        onClick={boardReady ? cubeClicked : () => alert("Please generate the board before starting the game!")}
-        onContextMenu={boardReady ? putFlag : () => alert("Please generate the board before starting the game!")}></canvas>
-      </div>
-      
-      <div>
-        <button onClick={() => drawBoard()}>
-          Generate Board
-        </button>
-        <br/>
-        <h4>Difficulty Settings:</h4>
-        <button onClick={() => easyMode()}>
-          Easy
-        </button>
-        <button onClick={() => mediumMode()}>
-          Medium
-        </button>
-        <button onClick={() => hardMode()}>
-          Hard
-        </button>
-
-        <button onClick={() => customMode()}>
-          Custom
-        </button>
-        <div id='customMenu'>
-          <Typography id="changeNumMine" gutterBottom>
-            Number of Mines
-          </Typography>
-          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-            <Slider
-              value={typeof numMine === 'number' ? numMine : 0}
-              onChange={handleChangeNumMine}
-              min={1}
-              max={(grid.x * grid.y) - 10}
-              aria-labelledby="changeNumMine"
-              valueLabelDisplay="auto"
-              step={1}
-            />
-          </Grid>
-          <br/>
-          <Typography id="changeGridX" gutterBottom>
-            Board Tiles Width
-          </Typography>
-          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-            <Slider
-              value={typeof grid.x === 'number' ? grid.x : 0}
-              onChange={handleChangeGridX}
-              min={4}
-              max={Math.floor(document.body.offsetWidth / 30) < 30? Math.floor(document.body.offsetWidth / 30) : 30}
-              aria-labelledby="changeGridX"
-              valueLabelDisplay="auto"
-              step={1}
-            />
-          </Grid>
-          <br/>
-          <Typography id="changeGridY" gutterBottom>
-            Board Tiles Height
-          </Typography>
-          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-            <Slider
-              value={typeof grid.y === 'number' ? grid.y : 0}
-              onChange={handleChangeGridY}
-              min={4}
-              max={26}
-              aria-labelledby="changeGridY"
-              valueLabelDisplay="auto"
-              step={1}
-            />
-          </Grid>
-        </div>
-
-        <br/>
+    <div className='container'>
+      <div className="row justify-content-center">
+      <div className="col-md-4 sticky-top ">
         <div>
-          <button onClick={() => saveScore()}>
-            Save Recent Score
+          <p> <b>User:</b> {user}</p>
+          <p> <b>Mode:</b> {theMode}</p>
+        </div>
+        <hr/>
+        <div>
+        <p>If you are a new or returning user, enter your username and password to save your scores (if the username doesn't exist, a new account will be created)</p>
+        <div className="form-group">
+          <input type="text" id="username" placeholder="Username"></input>
+        </div>
+          <br/>
+        <div className="form-group">
+          <input type="password" id="password" placeholder="Password"></input>
+        </div>
+          <br/>
+          <button onClick={() => login()} className='btn btn-primary'>
+            Register/Login
           </button>
         </div>
 
-        <br />
-        <label htmlFor="category">Choose a category:</label>
-        <select id="category" name="categories">
-          <option value="own">My Own</option>
-          <option value="easy">Easy Mode</option>
-          <option value="medium">Medium Mode</option>
-          <option value="hard">Hard Mode</option>
-        </select>
-        <button onClick={() => displayScores()}>
-          Display Highscores
-        </button>
-        <div id='leaderboard'>
+        <hr/>
+          <div>
+            <button onClick={() => saveScore()} className='btn btn-primary'>
+              Save Recent Score
+            </button>
+          </div>
+
+          <br />
+          <label htmlFor="category">Choose a category to see Scoreboard (highest scores):</label>
+          <select id="category" name="categories" className='form-control'>
+            <option value="own">My Own</option>
+            <option value="easy">Easy Mode</option>
+            <option value="medium">Medium Mode</option>
+            <option value="hard">Hard Mode</option>
+          </select>
+          <br/>
+          <button onClick={() => displayScores()} className='btn btn-primary'>
+            Display Highscores
+          </button>
+          <br/>
+          <div id='leaderboard' className='pt-4'></div>
           
+          <hr/>
+          <div>
+          <button onClick={() => logout()} className='btn btn-primary'>
+            Logout
+          </button>
         </div>
 
+        </div>
+
+        <div className="col-md-8">
+        <div >
+          <h1>Minesweeper</h1>
+        </div>
+        <hr/>
+        <br/>
+        <div>
+          <h3 id='flagNumDisplay'></h3>
+          <h3 id='stopwatchDisplay'>{isTimerOn? `Time: ${formatTimer(timer)}` : ''}</h3>
+        </div>
+        <div className='px-2'>
+          <canvas id='board' width={width} height={height} 
+          onClick={boardReady ? cubeClicked : () => alert("Please generate the board before starting the game!")}
+          onContextMenu={boardReady ? putFlag : () => alert("Please generate the board before starting the game!")}></canvas>
+        </div>
+        
+        <div>
+          <button onClick={() => drawBoard()} className='btn btn-primary'>
+            Generate Board
+          </button>
+          <hr/>
+          <h4>Difficulty Settings:</h4>
+          <div id='theButtons'>
+          <button onClick={() => easyMode()} className='btn btn-primary'>
+            Easy
+          </button>
+          </div>
+          <div id='theButtons'>
+          <button onClick={() => mediumMode()} className='btn btn-primary'>
+            Medium
+          </button>
+          </div>
+          <div id='theButtons'>
+          <button onClick={() => hardMode()} className='btn btn-primary'>
+            Hard
+          </button>
+          </div>
+
+          <div id='theButtons'>
+          <button onClick={() => customMode()} className='btn btn-primary'>
+            Custom
+          </button>
+          </div>
+
+          <hr/>
+          <div id='customMenu'>
+            <Typography id="changeNumMine" gutterBottom>
+              Number of Mines
+            </Typography>
+            <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+              <Slider
+                value={typeof numMine === 'number' ? numMine : 0}
+                onChange={handleChangeNumMine}
+                min={1}
+                max={(grid.x * grid.y) - 10}
+                aria-labelledby="changeNumMine"
+                valueLabelDisplay="auto"
+                step={1}
+              />
+            </Grid>
+            <br/>
+            <Typography id="changeGridX" gutterBottom>
+              Board Tiles Width
+            </Typography>
+            <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+              <Slider
+                value={typeof grid.x === 'number' ? grid.x : 0}
+                onChange={handleChangeGridX}
+                min={4}
+                max={Math.floor(document.body.offsetWidth / 30) < 30? Math.floor(document.body.offsetWidth / 30) : 30}
+                aria-labelledby="changeGridX"
+                valueLabelDisplay="auto"
+                step={1}
+              />
+            </Grid>
+            <br/>
+            <Typography id="changeGridY" gutterBottom>
+              Board Tiles Height
+            </Typography>
+            <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+              <Slider
+                value={typeof grid.y === 'number' ? grid.y : 0}
+                onChange={handleChangeGridY}
+                min={4}
+                max={26}
+                aria-labelledby="changeGridY"
+                valueLabelDisplay="auto"
+                step={1}
+              />
+            </Grid>
+          </div>
+
+          </div>
+
+        </div>
       </div>
+    </div>
     </>
   )
 }
