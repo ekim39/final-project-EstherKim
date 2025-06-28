@@ -16,17 +16,21 @@ function App() {
   const [width, setWidth] = useState(grid.x * cubeSize);
   const [height, setHeight] = useState(grid.y * cubeSize);
   const [numMine, setNumMine] = useState(40);
+  const [numSqrLeft, setNumSqrLeft] = useState(grid.x * grid.y); // number of squares that are still covered
 
   // keeps track of the current game state
   const [boardState, setBoardState] = useState([]); // numbers 1-8 means there are that many mines around that square, -1 means a mine, 0 means no mines
   const [flagPlacements, setFlagPlacements] = useState([]); // stores where flags are placed, (x, y) coordinates
   const [uncoveredSqr, setUncoveredSqr] = useState([]); // stores where the covered and uncovered squares are (0 means covered, 1 means uncovered)
-  const [numSqrLeft, setNumSqrLeft] = useState(grid.x * grid.y); // number of squares that are still covered
   const [boardReady, setBoardReady] = useState(false); // whether the board has been generated and ready for a game
   const [gameStart, setGameStart] = useState(false); // whether the game has been started by a user clicking a ready board
 
   // username information; "Guest" is default for not logged in users
   const [user, setUser] = useState("Guest");
+
+  // stopwatch for recording time took to complete game by user
+  const [timer, setTimer] = useState(0); // stores how much time has passed since starting timer (in milliseconds)
+  const [isTimerOn, setIsTimerOn] = useState(false); // true if timer is running, false otherwise
 
 
   // checks if two arrays are equal (by value)
@@ -158,6 +162,7 @@ function App() {
     // update text with number of flags left to place
     let flagNum = document.getElementById("flagNumDisplay");
     flagNum.textContent = `Number of Flags to Place: ${numMine}`;
+    setIsTimerOn(false);
   }
 
   // returns true or false for whether tx and ty are valid coordinates to place a mine
@@ -388,7 +393,7 @@ function App() {
     }
   }
 
-  // !!! TODO - add custom difficulty; add timer; add leaderboard/scoreboard; style;
+  // !!! TODO - add timer; add leaderboard/scoreboard; style;
   function cubeClicked(event) {
     if (gameStart) {
       let canvas = document.getElementById('board');
@@ -409,12 +414,14 @@ function App() {
           setBoardReady(false);
           setGameStart(false);
           setBoardState(clearBoard());
+          setIsTimerOn(false);
         } else if (numSqr === numMine) {
           // found all the mines, won; reset game
-          alert("Congrats! You won!");
+          alert(`Congrats! You won!\nYou took a total of: ${Math.floor(timer / 60000)} min ${Math.floor((timer % 60000) / 1000)} sec`);
           setBoardReady(false);
           setGameStart(false);
           setBoardState(clearBoard());
+          setIsTimerOn(false);
         }
       }
     } else {
@@ -428,6 +435,7 @@ function App() {
       setGameStart(true);
       setNumSqrLeft(numSqr);
       setFlagPlacements([]);
+      setIsTimerOn(true);
     }
   }
 
@@ -482,6 +490,8 @@ function App() {
     const menu = document.getElementById('customMenu');
     menu.style.display = 'none';
 
+    setIsTimerOn(false);
+
     setGrid({x: 10, y: 8});
     setWidth(10 * cubeSize);
     setHeight(8 * cubeSize);
@@ -497,6 +507,8 @@ function App() {
 
     const menu = document.getElementById('customMenu');
     menu.style.display = 'none';
+
+    setIsTimerOn(false);
 
     setGrid({x: 18, y: 14});
     setWidth(18 * cubeSize);
@@ -514,6 +526,8 @@ function App() {
     const menu = document.getElementById('customMenu');
     menu.style.display = 'none';
 
+    setIsTimerOn(false);
+
     setGrid({x: 24, y: 20});
     setWidth(24 * cubeSize);
     setHeight(20 * cubeSize);
@@ -526,6 +540,8 @@ function App() {
   function customMode() {
     const menu = document.getElementById('customMenu');
     menu.style.display = 'block';
+
+    setIsTimerOn(false);
   }
 
   function login() {
@@ -579,13 +595,37 @@ function App() {
     let regY = grid.y;
     setGrid({x: newValue, y: regY});
     setWidth(newValue * cubeSize);
+    setNumSqrLeft(newValue * regY);
   }
 
   const handleChangeGridY = (event, newValue) => {
     let regX = grid.x;
     setGrid({x: regX, y: newValue});
     setHeight(newValue * cubeSize);
+    setNumSqrLeft(newValue * regX);
   }
+
+  // timer functions
+  // starts timer if isTimerOn is true (updates every 1000 ms)
+  useEffect(() => {
+    let interval;
+    if (isTimerOn) {
+      interval = setInterval(() => {
+        setTimer(prevTimer => prevTimer + 1000); // Update every 10ms
+      }, 1000);
+    } else {
+      setTimer(0);
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval); // Cleanup on unmount or isRunning change
+  }, [isTimerOn]);
+
+  // formats the timer (in milliseconds) into minutes and seconds
+  function formatTimer(ms) {
+    const minutes = Math.floor(ms / 60000); // calculates the minutes
+    const seconds = Math.floor((ms % 60000) / 1000); // calculates the seconds minus full minutes
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
 
   return (
@@ -614,6 +654,7 @@ function App() {
       <br/>
       <div>
         <h3 id='flagNumDisplay'></h3>
+        <h3 id='stopwatchDisplay'>{isTimerOn? `Time: ${formatTimer(timer)}` : ''}</h3>
       </div>
       <div>
         <canvas id='board' width={width} height={height} 
@@ -642,7 +683,7 @@ function App() {
         </button>
         <div id='customMenu'>
           <Typography id="changeNumMine" gutterBottom>
-            Ratio of Initial Alive Cells
+            Number of Mines
           </Typography>
           <Grid container spacing={2} sx={{ alignItems: 'center' }}>
             <Slider
