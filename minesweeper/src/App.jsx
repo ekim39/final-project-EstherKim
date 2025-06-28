@@ -6,24 +6,26 @@ import Slider from '@mui/material/Slider';
 import './App.css'
 
 function App() {
+  // these should not change during deployment
   const [cubeSize, setCubeSize] = useState(30);
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
+
+  // these can be adjusted
   const [grid, setGrid] = useState({x: 18, y: 14});
   const [width, setWidth] = useState(grid.x * cubeSize);
   const [height, setHeight] = useState(grid.y * cubeSize);
-  const [startX, setStartX] = useState(0);
-  const [startY, setStartY] = useState(0);
-  // keeps track of the current board state
-  // numbers 1-8 means there are that many mines around that square, -1 means a mine, 0 means no mines
-  const [boardState, setBoardState] = useState([]);
   const [numMine, setNumMine] = useState(40);
+
+  // keeps track of the current game state
+  const [boardState, setBoardState] = useState([]); // numbers 1-8 means there are that many mines around that square, -1 means a mine, 0 means no mines
   const [flagPlacements, setFlagPlacements] = useState([]); // stores where flags are placed, (x, y) coordinates
   const [uncoveredSqr, setUncoveredSqr] = useState([]); // stores where the covered and uncovered squares are (0 means covered, 1 means uncovered)
-  const [numSqrLeft, setNumSqrLeft] = useState(grid.x * grid.y);
-  const [boardReady, setBoardReady] = useState(false);
-  const [gameStart, setGameStart] = useState(false);
-  // interactivity (sliders)
+  const [numSqrLeft, setNumSqrLeft] = useState(grid.x * grid.y); // number of squares that are still covered
+  const [boardReady, setBoardReady] = useState(false); // whether the board has been generated and ready for a game
+  const [gameStart, setGameStart] = useState(false); // whether the game has been started by a user clicking a ready board
 
-  // username information, "Guest" is default for not logged in users
+  // username information; "Guest" is default for not logged in users
   const [user, setUser] = useState("Guest");
 
 
@@ -573,6 +575,12 @@ function App() {
     setNumMine(newValue);
   };
 
+  const handleChangeGridX = (event, newValue) => {
+    let regY = grid.y;
+    setGrid({x: newValue, y: regY});
+    setWidth(newValue * cubeSize);
+  }
+
   return (
     <>
       <div>
@@ -633,9 +641,24 @@ function App() {
             <Slider
               value={typeof numMine === 'number' ? numMine : 0}
               onChange={handleChangeNumMine}
-              min={10}
-              max={500}
+              min={1}
+              max={(grid.x * grid.y) - 10}
               aria-labelledby="changeNumMine"
+              valueLabelDisplay="auto"
+              step={1}
+            />
+          </Grid>
+          <br/>
+          <Typography id="changeGridX" gutterBottom>
+            Board Cubes Width
+          </Typography>
+          <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+            <Slider
+              value={typeof grid.x === 'number' ? grid.x : 0}
+              onChange={handleChangeGridX}
+              min={4}
+              max={Math.floor(document.body.offsetWidth / 30)}
+              aria-labelledby="changeGridX"
               valueLabelDisplay="auto"
               step={1}
             />
