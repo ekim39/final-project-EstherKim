@@ -515,24 +515,43 @@ window.location.reload();
   function login() {
     const username = document.querySelector( "#username" ),
           password = document.querySelector( "#password" ),
-          json = {"username": username.value, "password": password.value}
-
-          
+          json = {"username": username.value, "password": password.value}   
 
     fetch('/login', {
       method:'POST',
       body: JSON.stringify( json ),
       headers: {'Content-Type': 'application/json'}
-    }).then( response => {
+    }).then(response => {
       if (response.status === 200) {
         alert("Successfully logged in/created account!");
         setUser(username.value);
       } else {
         alert("Oops, that username exists! Please try again or use a different username.");
       }
-    }).catch(err => {
-      console.error("Fetch failed:", err);
-    });
+    })
+
+    // clearing input values
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    usernameInput.value = '';
+    passwordInput.value = '';
+  }
+
+  function logout() {
+    if (user !== 'Guest') {
+      fetch('/logout', {
+        method:'GET'
+      }).then(response => {
+        if (response.status === 200) {
+          alert("Logged out successfully!")
+          setUser('Guest');
+        } else {
+          alert("Oops, logout failed! Please try again.")
+        }
+      })
+    } else {
+      alert("You are not logged in!");
+    }
   }
   
 
@@ -551,7 +570,12 @@ window.location.reload();
         <input type="password" id="password"></input>
         <br/>
         <button onClick={() => login()}>
-            Register/Login
+          Register/Login
+        </button>
+      </div>
+      <div>
+        <button onClick={() => logout()}>
+          Logout
         </button>
       </div>
       <div>

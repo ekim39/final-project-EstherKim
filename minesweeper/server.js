@@ -122,6 +122,13 @@ app.post( "/login", async (req, res) => {
     }
 })
 
+app.get("/logout", async (req, res, next) => {
+    req.session.loggedIn = false;
+    req.session.userId = null;
+    res.status(200);
+    res.send("Logged out successfully");
+})
+
 /* app.get( "/", authenticate, (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 }) */
