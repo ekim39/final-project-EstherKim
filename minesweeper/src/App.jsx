@@ -941,27 +941,19 @@ function App() {
           </button>
           <hr/>
           <h4>Difficulty Settings:</h4>
-          <div id='theButtons'>
           <button onClick={() => easyMode()} className='btn btn-primary'>
             Easy
           </button>
-          </div>
-          <div id='theButtons'>
           <button onClick={() => mediumMode()} className='btn btn-primary'>
             Medium
           </button>
-          </div>
-          <div id='theButtons'>
           <button onClick={() => hardMode()} className='btn btn-primary'>
             Hard
           </button>
-          </div>
 
-          <div id='theButtons'>
           <button onClick={() => customMode()} className='btn btn-primary'>
             Custom
           </button>
-          </div>
 
           <hr/>
           <div id='customMenu'>
