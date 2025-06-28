@@ -31,7 +31,7 @@ function App() {
   // for scoreboard
   const [recentTime, setRecentTime] = useState(-1); // holds most recent time; -1 means there is no recentTime to save
   const [didSaveTime, setDidSaveTime] = useState(false); // whether most recent time has been saved
-  const [theMode, setTheMode] = useState("Medium"); // holds what mode the recentTime was achieved on
+  const [theMode, setTheMode] = useState("Custom"); // holds what mode the recentTime was achieved on
 
   // stopwatch for recording time took to complete game by user
   const [timer, setTimer] = useState(0); // stores how much time has passed since starting timer (in milliseconds)
@@ -172,6 +172,9 @@ function App() {
     // hides leaderboard
     const scoreboard = document.getElementById('leaderboard');
     scoreboard.style.display = 'none';
+
+    // clear flag placements
+    setFlagPlacements([]);
   }
 
   // returns true or false for whether tx and ty are valid coordinates to place a mine
@@ -190,7 +193,6 @@ function App() {
 
   // nx and ny is coordinates that the player pressed, do not want a mine there
   function calculateUnderlyingBoard(nx, ny) {
-    //console.log(Array.from({ length: grid.y }, () => Array(grid.x).fill(0)));
     let completelynewboard = clearBoard();
     let numMineStillLeft = numMine;
     while (numMineStillLeft !== 0) {
@@ -423,8 +425,10 @@ function App() {
           setBoardReady(false);
           setGameStart(false);
           setBoardState(clearBoard());
+          setFlagPlacements([]);
           setIsTimerOn(false);
         } else if (numSqr === numMine) {
+          //!!!
           // found all the mines, won; reset game
           alert(`Congrats! You won!\nYou took a total of: ${Math.floor(timer / 60000)} min ${Math.floor((timer % 60000) / 1000)} sec`);
           setRecentTime(timer);
@@ -433,6 +437,7 @@ function App() {
           setBoardReady(false);
           setGameStart(false);
           setBoardState(clearBoard());
+          setFlagPlacements([]);
           setIsTimerOn(false);
         }
       }
@@ -641,8 +646,158 @@ function App() {
 
   // highscore/leaderboard
   function displayScores() {
-    const scoreboard = document.getElementById('leaderboard');
-    scoreboard.style.display = 'block';
+    if (user === 'Guest') {
+      // user is not signed in, cannot save
+      alert('Please sign in to view scoreboard!');
+    } else {
+      const category = document.querySelector( "#category" ),
+          json = {category: category.value}
+    
+    fetch( '/getHighscores', {
+      method:'POST',
+      body: JSON.stringify( json ),
+      headers: { 'Content-Type': 'application/json' }
+    }).then(response => {
+      if (response.status === 200) {
+        return response.json();
+      } else {
+        alert("Oops, something went wrong! Please try again.")
+        return Promise.reject('Bad status: ' + response.status);
+      }
+    }).then(jres => {
+      const scoreboard = document.getElementById('leaderboard');
+      scoreboard.replaceChildren(); // getting rid of any existing html
+
+      // creating table to append to scoreboard
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+      if (category.value === 'own') {
+        // caption
+        const caption = document.createElement('caption');
+        caption.textContent = "My Top Three Scores";
+        table.appendChild(caption);
+
+        // header
+        const theader = document.createElement('tr');
+        const hdiff = document.createElement('th');
+        hdiff.textContent = 'Difficulty';
+        theader.appendChild(hdiff);
+        const hscore = document.createElement('th');
+        hscore.textContent = 'My Score';
+        theader.appendChild(hscore);
+        thead.appendChild(theader);
+    
+        // table rows
+        const easyrow = document.createElement('tr');
+        const erm = document.createElement('td');
+        erm.textContent = 'Easy';
+        easyrow.appendChild(erm);
+        const ers = document.createElement('td');
+        if (jres.easy === -1) {
+          ers.textContent = 'N/A';
+        } else {
+          ers.textContent = formatTimer(jres.easy);
+        }
+        easyrow.appendChild(ers);
+        tbody.appendChild(easyrow);
+
+        const mediumrow = document.createElement('tr');
+        const mrm = document.createElement('td');
+        mrm.textContent = 'Medium';
+        mediumrow.appendChild(mrm);
+        const mrs = document.createElement('td');
+        if (jres.medium === -1) {
+          mrs.textContent = 'N/A';
+        } else {
+          mrs.textContent = formatTimer(jres.medium);
+        }
+        mediumrow.appendChild(mrs);
+        tbody.appendChild(mediumrow);
+
+        const hardrow = document.createElement('tr');
+        const hrm = document.createElement('td');
+        hrm.textContent = 'Hard';
+        hardrow.appendChild(hrm);
+        const hrs = document.createElement('td');
+        if (jres.hard === -1) {
+          hrs.textContent = 'N/A';
+        } else {
+          hrs.textContent = formatTimer(jres.hard);
+        }
+        hardrow.appendChild(hrs);
+        tbody.appendChild(hardrow);
+    
+        table.appendChild(thead);
+        table.appendChild(tbody);
+      } else {
+        // caption
+        const caption = document.createElement('caption');
+        if (category.value === 'easy') {
+          caption.textContent = "Easy Mode Leaderboard";
+        } else if (category.value === 'medium') {
+          caption.textContent = "Medium Mode Leaderboard";
+        } else if (category.value === 'hard') {
+          caption.textContent = "Hard Mode Leaderboard";
+        }
+        table.appendChild(caption);
+
+        // header
+        const theader = document.createElement('tr');
+        const hrank = document.createElement('th');
+        hrank.textContent = 'Rank';
+        theader.appendChild(hrank);
+        const huser = document.createElement('th');
+        huser.textContent = 'Username';
+        theader.appendChild(huser);
+        const hscore = document.createElement('th');
+        hscore.textContent = 'Score';
+        theader.appendChild(hscore);
+        thead.appendChild(theader);
+
+        for (let i = 0; i < 3; i++) {
+          // table rows
+          if (jres[i] === -1) {
+            const row = document.createElement('tr');
+            const rr = document.createElement('td');
+            rr.textContent = 'N/A';
+            row.appendChild(rr);
+
+            const ru = document.createElement('td');
+            ru.textContent = 'N/A';
+            row.appendChild(ru);
+
+            const rs = document.createElement('td');
+            rs.textContent = 'N/A';
+            row.appendChild(rs);
+            tbody.appendChild(row);
+          } else {
+            const row = document.createElement('tr');
+            const rr = document.createElement('td');
+            rr.textContent = `${i + 1}`;
+            row.appendChild(rr);
+
+            const ru = document.createElement('td');
+            ru.textContent = jres[i].userName;
+            row.appendChild(ru);
+
+            const rs = document.createElement('td');
+            rs.textContent = formatTimer(jres[i].score);
+            row.appendChild(rs);
+            tbody.appendChild(row);
+          }   
+        }
+    
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+      }
+      scoreboard.appendChild(table);
+      scoreboard.style.display = 'block';
+    })
+
+    
+    }
   }
 
   function saveScore() {
@@ -810,6 +965,13 @@ function App() {
         </div>
 
         <br />
+        <label htmlFor="category">Choose a category:</label>
+        <select id="category" name="categories">
+          <option value="own">My Own</option>
+          <option value="easy">Easy Mode</option>
+          <option value="medium">Medium Mode</option>
+          <option value="hard">Hard Mode</option>
+        </select>
         <button onClick={() => displayScores()}>
           Display Highscores
         </button>
